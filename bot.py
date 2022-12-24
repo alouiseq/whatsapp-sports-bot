@@ -2,10 +2,12 @@ from flask import Flask, request
 import requests
 from twilio.twiml.messaging_response import MessagingResponse
 from datetime import datetime, timedelta
+import pdb
 
 app = Flask(__name__)
 
 NO_DATA_MSG = 'Whoops, I seem to be missing that data!'
+FAILED_MSG = 'No games meet the requirements.'
 
 NBA_URL = "https://api-nba-v1.p.rapidapi.com/games"
 NBA_HEADERS = {
@@ -67,8 +69,8 @@ class Game_NBA:
 
         return None
 
-def getJsonData(req_url, headers={'accept': 'application/json'}):
-    r = requests.get(req_url, headers=headers)
+def getJsonData(req_url, headers={'accept': 'application/json'}, params={}):
+    r = requests.get(req_url, headers=headers, params=params)
     if r.status_code == 200:
         return r.json()
 
@@ -81,16 +83,18 @@ def bot():
 
     if 'nba' in incoming_msg:
         today = str(datetime.utcnow().date())
-        querystring = {"live": "all", "date": today}
+        querystring = {"live": "all"}
 
         data = getJsonData(NBA_URL, NBA_HEADERS, querystring)
 
-        if data:
-            for game in data.response:
+        if data['results']:
+            for game in data['response']:
                 game = Game_NBA(game)
                 result_msg = game.strategy_result_msg()
                 if result_msg:
                     msg.body(f'{result_msg} ({game.team1} vs {game.team2})')
+
+        msg.body(FAILED_MSG)
 
         searched = True
     if not searched:
