@@ -1,12 +1,17 @@
 from flask import Flask, request
 import requests
 from twilio.twiml.messaging_response import MessagingResponse
-import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-no_data_msg = 'Whoops, I seem to be missing that data!'
+NO_DATA_MSG = 'Whoops, I seem to be missing that data!'
 
+NBA_URL = "https://api-nba-v1.p.rapidapi.com/games"
+NBA_HEADERS = {
+    "X-RapidAPI-Key": "d16b6e4142mshfff4f1f121ab449p1088cajsnfabf9adc12f5",
+    "X-RapidAPI-Host": "api-nba-v1.p.rapidapi.com"
+}
 
 # nba game metadata
 class Game_NBA = {
@@ -18,10 +23,25 @@ class Game_NBA = {
         self.team2q1 = game['scores']['home']['linescore'][0]
         self.team2q2 = game['scores']['home']['linescore'][1]
         self.quarter = periods['current']
-        self.played_yesterday = played_yesterday
         self.halftime =game['status']['halftime']
 
-    # nba strategy engine logic
+        team1_id = game['teams']['visitors']["id"]
+        team2_id = game['teams']['home']["id"]
+        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
+
+    def check_game_yesterday(self, team1_id, team2_id):
+        yesterday = str(datetime.utcnow().date() - timedelta(1))
+        querystring1 = {"season": "2022", "team": str(team1_id), "date": yesterday}
+        querystring2 = {"season": "2022", "team": str(team2_id), "date": yesterday}
+        data1 = getJsonData(NBA_URL, NBA_HEADERS, querystring1)
+        data2 = getJsonData(NBA_URL, NBA_HEADERS, querystring2)
+
+        if data1 and data2:
+            return True if data1.results or data2.results else False
+        else:
+            return False
+
+
     def strategy_result_msg(self):
         score_count = 0
 
@@ -60,14 +80,10 @@ def bot():
     searched = False
 
     if 'nba' in incoming_msg:
-        url = "https://api-nba-v1.p.rapidapi.com/games"
-        headers = {
-            "X-RapidAPI-Key": "d16b6e4142mshfff4f1f121ab449p1088cajsnfabf9adc12f5",
-            "X-RapidAPI-Host": "api-nba-v1.p.rapidapi.com"
-        }
-        querystring = {"live": "all", "date": str(datetime.date.today())}
+        today = str(datetime.utcnow().date())
+        querystring = {"live": "all", "date": today}
 
-        data = getJsonData(url, headers, querystring)
+        data = getJsonData(NBA_URL, NBA_HEADERS, querystring)
 
         if data:
             for game in data.response:
@@ -78,7 +94,7 @@ def bot():
 
         searched = True
     if not searched:
-        msg.body(no_data_msg)
+        msg.body(NO_DATA_MSG)
 
     return str(resp)
 
