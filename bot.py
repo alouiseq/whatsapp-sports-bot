@@ -113,7 +113,7 @@ class Game_NFL:
 
         return None
 
-def getJsonData(req_url, headers={'accept': 'application/json'}, params={}):
+def get_json_data(req_url, headers={'accept': 'application/json'}, params={}):
     r = requests.get(req_url, headers=headers, params=params)
     if r.status_code == 200:
         return r.json()
@@ -129,7 +129,7 @@ def bot():
         today = str(datetime.utcnow().date())
         querystring = {"live": "all"}
 
-        data = getjsondata(nba_url, nba_headers, querystring)
+        data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
 
         if data['results']:
             for game in data['response']:
@@ -139,12 +139,12 @@ def bot():
                     msg.body(f'{result_msg} ({game.team1} at {game.team2})')
 
         msg.body(FAILED_MSG.format('NBA'))
-        searched = true
+        searched = True
     if 'nfl' in incoming_msg:
         today = str(datetime.utcnow().date())
         querystring = {"live": "all"}
 
-        data = getjsondata(nba_url, nba_headers, querystring)
+        data = get_json_data(NFL_URL, NFL_HEADERS, querystring)
 
         if data['results']:
             for game in data['response']:
@@ -154,7 +154,7 @@ def bot():
                     msg.body(f'{result_msg} ({game.team1} at {game.team2})')
 
         msg.body(FAILED_MSG.format('NFL'))
-        searched = true
+        searched = True
     if not searched:
         msg.body(NO_DATA_MSG)
 
