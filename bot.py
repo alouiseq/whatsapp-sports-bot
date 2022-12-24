@@ -1,13 +1,53 @@
 from flask import Flask, request
 import requests
 from twilio.twiml.messaging_response import MessagingResponse
+import datetime
 
 app = Flask(__name__)
 
-failed_msg = 'Oh no! I can\'t find a {} for you at this time.'
-no_data_msg = 'Whoops, I seem to be missing that data! Ask me about famous quotes, cats, dogs, and jokes instead!'
+no_data_msg = 'Whoops, I seem to be missing that data!'
 
-def getData(req_url, headers={'accept': 'application/json'}):
+
+# nba game metadata
+class Game_NBA = {
+    def __init__(self, game):
+        self.team1 = game['teams']['visitors']['nickname']
+        self.team1q1 = game['scores']['visitors']['linescore'][0]
+        self.team1q2 = game['scores']['visitors']['linescore'][1]
+        self.team2 = game['teams']['home']['nickname']
+        self.team2q1 = game['scores']['home']['linescore'][0]
+        self.team2q2 = game['scores']['home']['linescore'][1]
+        self.quarter = periods['current']
+        self.played_yesterday = played_yesterday
+        self.halftime =game['status']['halftime']
+
+    # nba strategy engine logic
+    def strategy_result_msg(self):
+        score_count = 0
+
+        if quarter > 2 or quarter == 1:
+            return None
+        if self.halftime:
+            if team1q2 >= 30:
+                score_count += 1
+            if team2q2 >= 30:
+                score_count += 1
+        team1q1 >= 30:
+            score_count += 1
+        team2q1 >= 30:
+            score_count += 1
+
+        if score_count >= 3 and self.played_yesterday:
+            return "This is a really solid position!"
+        elif score_count >= 3:
+            return "Not great, but this is a good position!"
+        elif score_count >= 1 and quarter == 2:
+            return "It's 2nd Quarter, but this has potential"
+
+        return None
+}
+
+def getJsonData(req_url, headers={'accept': 'application/json'}):
     r = requests.get(req_url, headers=headers)
     if r.status_code == 200:
         return r.json()
@@ -19,48 +59,22 @@ def bot():
     msg = resp.message()
     searched = False
 
-    if 'quote' in incoming_msg:
-        data = getData('https://api.quotable.io/random')
-        if data:
-            quote = f'{data["content"]} ({data["author"]})'
-        else:
-            quote = failed_msg.format('quote')
+    if 'nba' in incoming_msg:
+        url = "https://api-nba-v1.p.rapidapi.com/games"
+        headers = {
+            "X-RapidAPI-Key": "d16b6e4142mshfff4f1f121ab449p1088cajsnfabf9adc12f5",
+            "X-RapidAPI-Host": "api-nba-v1.p.rapidapi.com"
+        }
+        querystring = {"live": "all", "date": str(datetime.date.today())}
 
-        msg.body(quote)
-        searched = True
-    if 'joke' in incoming_msg:
-        data = getData('https://icanhazdadjoke.com')
-        if data:
-            joke = data['joke']
-        else:
-            joke = failed_msg.format('joke')
-        msg.body(joke)
-        searched = True
-    if 'cat' in incoming_msg:
-        msg.media('https://cataas.com/cat')
-        searched = True
-    if 'dog' in incoming_msg:
-        breed = None
-        data = getData('https://dog.ceo/api/breeds/list/all')
-        if data:
-            breeds = list(data['message'].keys())
-
-        for b in breeds:
-            if b in incoming_msg:
-                breed = b;
-                break
-
-        if breed:
-            data = getData(f'https://dog.ceo/api/breed/{breed}/images/random')
-        else:
-            data = getData('https://dog.ceo/api/breeds/image/random')
+        data = getJsonData(url, headers, querystring)
 
         if data:
-            dog_url = data['message']
-            msg.media(dog_url)
-        else:
-            dog = failed_msg.format('dog')
-            msg.body(dog)
+            for game in data.response:
+            game = Game_NBA(game)
+            result_msg = game.strategy_result_msg()
+            if result_msg:
+                msg.body(f'{result_msg} ({game.team1} vs {game.team2})')
 
         searched = True
     if not searched:
