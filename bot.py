@@ -14,7 +14,7 @@ NBA_HEADERS = {
 }
 
 # nba game metadata
-class Game_NBA = {
+class Game_NBA:
     def __init__(self, game):
         self.team1 = game['teams']['visitors']['nickname']
         self.team1q1 = game['scores']['visitors']['linescore'][0]
@@ -52,9 +52,10 @@ class Game_NBA = {
                 score_count += 1
             if team2q2 >= 30:
                 score_count += 1
-        team1q1 >= 30:
+
+        if team1q1 >= 30:
             score_count += 1
-        team2q1 >= 30:
+        if team2q1 >= 30:
             score_count += 1
 
         if score_count >= 3 and self.played_yesterday:
@@ -65,7 +66,6 @@ class Game_NBA = {
             return "It's 2nd Quarter, but this has potential"
 
         return None
-}
 
 def getJsonData(req_url, headers={'accept': 'application/json'}):
     r = requests.get(req_url, headers=headers)
@@ -87,10 +87,10 @@ def bot():
 
         if data:
             for game in data.response:
-            game = Game_NBA(game)
-            result_msg = game.strategy_result_msg()
-            if result_msg:
-                msg.body(f'{result_msg} ({game.team1} vs {game.team2})')
+                game = Game_NBA(game)
+                result_msg = game.strategy_result_msg()
+                if result_msg:
+                    msg.body(f'{result_msg} ({game.team1} vs {game.team2})')
 
         searched = True
     if not searched:
