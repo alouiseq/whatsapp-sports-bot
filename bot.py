@@ -83,7 +83,7 @@ class Game_NFL:
         self.team1_total = game['scores']['away']['total']
         self.team2 = game['teams']['home']['name']
         self.team2_total = game['scores']['home']['total']
-        self.quarter = game['status']['short']
+        self.quarter = game['game']['status']['short']
 
         team1_id = game['teams']['visitors']["id"]
         team2_id = game['teams']['home']["id"]
@@ -133,7 +133,7 @@ def bot():
 
         if data['results']:
             for game in data['response']:
-                game = game_nba(game)
+                game = Game_NBA(game)
                 result_msg = game.strategy_result_msg()
                 if result_msg:
                     msg.body(f'{result_msg} ({game.team1} at {game.team2})')
@@ -142,13 +142,13 @@ def bot():
         searched = True
     if 'nfl' in incoming_msg:
         today = str(datetime.utcnow().date())
-        querystring = {"live": "all"}
+        querystring = {"live": "all", "league": "1"}
 
         data = get_json_data(NFL_URL, NFL_HEADERS, querystring)
 
         if data['results']:
             for game in data['response']:
-                game = game_nfl(game)
+                game = Game_NFL(game)
                 result_msg = game.strategy_result_msg()
                 if result_msg:
                     msg.body(f'{result_msg} ({game.team1} at {game.team2})')
