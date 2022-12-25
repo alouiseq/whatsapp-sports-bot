@@ -72,13 +72,13 @@ class Game_NBA:
             score_count += 1
 
         if score_count >= 3 and self.played_yesterday:
-            self.result_msg = f'This is a really solid position! {this.teams_meta}'
+            self.result_msg = f'This is a really solid position! {self.teams_meta}'
             return True
         elif score_count >= 3:
-            self.result_msg = f'Not great, but this is a good position! {this.teams_meta}'
+            self.result_msg = f'Not great, but this is a good position! {self.teams_meta}'
             return True
-        elif score_count >= 1 and quarter == 2:
-            self.result_msg = f'It\'s 2nd Quarter, but this has potential. {this.teams_meta}'
+        elif score_count >= 1 and self.quarter == 2:
+            self.result_msg = f'It\'s 2nd Quarter, but this has potential. {self.teams_meta}'
             return True
 
         return False 
@@ -91,15 +91,17 @@ class Game_NFL:
         self.team2_total = game['scores']['home']['total']
         self.quarter = game['game']['status']['short']
 
-        team1_id = game['teams']['away']["id"]
-        team2_id = game['teams']['home']["id"]
-
         teams_meta = f'({self.team1}:{self.team1_total} at {self.team2}:{self.team2_total})'
-        trigger_total_msg = f'This is a really solid position, take the 2h total under! {self.teams_meta}'
-        trigger_team_total_msg = f'This is a solid position for the team, take the 2h TEAM total under! {self.teams_meta}'
-        close_total_msg = f'It\'s 2nd Quarter, but 2h total has potential. {self.teams_meta}'
-        close_team_total_msg = f'It\'s 2nd Quarter, but 2h TEAM total has potential. {self.teams_meta}'
-        result_msg = None
+        self.trigger_total_msg = f'This is a really solid position, take the 2h total under! {teams_meta}'
+        self.trigger_team_total_msg = f'This is a solid position for the team, take the 2h TEAM total under! {teams_meta}'
+        self.close_total_msg = f'It\'s 2nd Quarter, but 2h total has potential. {teams_meta}'
+        self.close_team_total_msg = f'It\'s 2nd Quarter, but 2h TEAM total has potential. {teams_meta}'
+        self.result_msg = None
+
+    def checkTotalMet(self, actual, expected):
+        if actual >= expected:
+            return True
+        return False
 
     def strategy_result(self):
         meets_req = False 
@@ -113,24 +115,18 @@ class Game_NFL:
         if self.quarter in no_trigger_statuses:
             return None
 
-        def checkTotalMet(actual, expected):
-            if actual >= expected:
-                return True
-            return False
-
-
         if self.quarter == 'HT':
-            if (checkTotalMet(self.team1_total, high_score) and checkTotalMet(self.team2_total, low_score)) or (checkTotalMet(self.team2_total, high_score) and checkTotalMet(self.team1_total, low_score)):
-               self.result_msg = trigger_total_msg
-            elif checkTotalMet(self.team1_total, max_score) or checkTotalMet(self.team2_total, max_score):
-               self.result_msg = trigger_team_total_msg
+            if (self.checkTotalMet(self.team1_total, high_score) and self.checkTotalMet(self.team2_total, low_score)) or (self.checkTotalMet(self.team2_total, high_score) and self.checkTotalMet(self.team1_total, low_score)):
+               self.result_msg = self.trigger_total_msg
+            elif self.checkTotalMet(self.team1_total, max_score) or self.checkTotalMet(self.team2_total, max_score):
+               self.result_msg = self.trigger_team_total_msg
         elif self.quarter == 'Q2':
-            if (checkTotalMet(self.team1_total, low_score) and checkTotalMet(self.team2_total, min_score)) or (checkTotalMet(self.team2_total, low_score) and checkTotalMet(self.team1_total, min_score)):
-               self.result_msg = close_total_msg 
-            elif checkTotalMet(self.team1_total, high_score) or checkTotalMet(self.team2_total, high_score):
-               self.result_msg = close_team_total_msg 
+            if (self.checkTotalMet(self.team1_total, low_score) and self.checkTotalMet(self.team2_total, min_score)) or (self.checkTotalMet(self.team2_total, low_score) and self.checkTotalMet(self.team1_total, min_score)):
+               self.result_msg = self.close_total_msg 
+            elif self.checkTotalMet(self.team1_total, high_score) or self.checkTotalMet(self.team2_total, high_score):
+               self.result_msg = self.close_team_total_msg 
 
-        if result_msg:
+        if self.result_msg:
             return True
 
         return False 
@@ -159,7 +155,7 @@ def bot():
                 game = Game_NBA(game)
                 trigger = game.strategy_result()
                 if trigger:
-                    trigger_msgs.append(f'{game.result_msg} ({game.team1} at {game.team2})')
+                    trigger_msgs.append(game.result_msg)
 
             if len(trigger_msgs):
                 msg.body(', '.join(trigger_msgs))
@@ -180,9 +176,9 @@ def bot():
                 game = Game_NFL(game)
                 trigger = game.strategy_result()
                 if trigger:
-                    trigger_msgs.append(f'{game.result_msg} ({game.team1} at {game.team2})')
+                    trigger_msgs.append(game.result_msg)
 
-            if len(trigger_msgs): 
+            if len(trigger_msgs):
                 msg.body(', '.join(trigger_msgs))
             else:
                 msg.body(REQ_NOT_MET_MSG.format('NFL'))
