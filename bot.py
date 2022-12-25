@@ -6,8 +6,9 @@ import pdb
 
 app = Flask(__name__)
 
-NO_DATA_MSG = 'Whoops, I seem to be missing that sports data!'
-FAILED_MSG = 'No {} games meet the requirements.'
+FAILED_MSG = 'I cannot find what you are searching for.'
+NO_DATA_MSG = 'Whoops, I seem to be missing that {} data!'
+REQ_NOT_MET_MSG = 'No {} games meet the requirements.'
 
 API_KEY = "d16b6e4142mshfff4f1f121ab449p1088cajsnfabf9adc12f5"
 
@@ -32,11 +33,13 @@ class Game_NBA:
         self.team2q1 = game['scores']['home']['linescore'][0]
         self.team2q2 = game['scores']['home']['linescore'][1]
         self.quarter = game['periods']['current']
-        self.halftime =game['status']['halftime']
+        self.halftime = game['status']['halftime']
+        self.teams_meta = f'({self.team1} at {self.team2})'
 
         team1_id = game['teams']['visitors']["id"]
         team2_id = game['teams']['home']["id"]
         self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
+        result_msg = None
 
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
@@ -51,7 +54,7 @@ class Game_NBA:
             return False
 
 
-    def strategy_result_msg(self):
+    def strategy_result(self):
         score_count = 0
         min_score = 30
 
@@ -69,13 +72,16 @@ class Game_NBA:
             score_count += 1
 
         if score_count >= 3 and self.played_yesterday:
-            return "This is a really solid position!"
-        if score_count >= 3:
-            return "Not great, but this is a good position!"
-        if score_count >= 1 and quarter == 2:
-            return "It's 2nd Quarter, but this has potential."
+            self.result_msg = f'This is a really solid position! {this.teams_meta}'
+            return True
+        elif score_count >= 3:
+            self.result_msg = f'Not great, but this is a good position! {this.teams_meta}'
+            return True
+        elif score_count >= 1 and quarter == 2:
+            self.result_msg = f'It\'s 2nd Quarter, but this has potential. {this.teams_meta}'
+            return True
 
-        return None
+        return False 
 
 class Game_NFL:
     def __init__(self, game):
@@ -85,10 +91,13 @@ class Game_NFL:
         self.team2_total = game['scores']['home']['total']
         self.quarter = game['game']['status']['short']
 
-        team1_id = game['teams']['visitors']["id"]
+        team1_id = game['teams']['away']["id"]
         team2_id = game['teams']['home']["id"]
 
-    def strategy_result_msg(self):
+        result_msg = None
+        teams_meta = f'({self.team1}:{self.team1_total} at {self.team2}:{self.team2_total})'
+
+    def strategy_result(self):
         meets_req = False 
         close_to_req = False
         no_trigger_statuses = ['Q1', 'Q3', 'Q4', 'OT', 'FT', 'AOT', 'CANC', 'PST']
@@ -100,18 +109,20 @@ class Game_NFL:
             return None
 
         if self.quarter == 'HT':
-            if team1_total >= high_score and team2_total >= low_score:
+            if self.team1_total >= high_score and self.team2_total >= low_score:
                 meets_req = True
         elif self.quarter == 'Q2':
-            if team1_total >= low_score and team2_total >= min_score:
+            if self.team1_total >= low_score and self.team2_total >= min_score:
                 close_to_req = True
 
         if meets_req:
-            return "This is a really solid position!"
-        if close_to_req:
-            return "It's 2nd Quarter, but this has potential."
+            self.result_msg = f'This is a really solid position! {self.teams_meta}'
+            return True
+        elif close_to_req:
+            self.result_msg = f'It\'s 2nd Quarter, but this has potential. {self.teams_meta}'
+            return True
 
-        return None
+        return False 
 
 def get_json_data(req_url, headers={'accept': 'application/json'}, params={}):
     r = requests.get(req_url, headers=headers, params=params)
@@ -124,6 +135,7 @@ def bot():
     resp = MessagingResponse()
     msg = resp.message()
     searched = False
+    trigger_msgs = []
 
     if 'nba' in incoming_msg:
         today = str(datetime.utcnow().date())
@@ -134,29 +146,41 @@ def bot():
         if data['results']:
             for game in data['response']:
                 game = Game_NBA(game)
-                result_msg = game.strategy_result_msg()
-                if result_msg:
-                    msg.body(f'{result_msg} ({game.team1} at {game.team2})')
+                trigger = game.strategy_result()
+                if trigger:
+                    trigger_msgs.append(f'{game.result_msg} ({game.team1} at {game.team2})')
 
-        msg.body(FAILED_MSG.format('NBA'))
+            if len(trigger_msgs):
+                msg.body(', '.join(trigger_msgs))
+            else:
+                msg.body(REQ_NOT_MET_MSG.format('NBA'))
+        else:
+            msg.body(NO_DATA_MSG.format('NBA'))
         searched = True
+
     if 'nfl' in incoming_msg:
         today = str(datetime.utcnow().date())
-        querystring = {"live": "all", "league": "1"}
+        querystring = {"live": "all", "league": "1", "season": "2022"}
 
         data = get_json_data(NFL_URL, NFL_HEADERS, querystring)
 
         if data['results']:
             for game in data['response']:
                 game = Game_NFL(game)
-                result_msg = game.strategy_result_msg()
-                if result_msg:
-                    msg.body(f'{result_msg} ({game.team1} at {game.team2})')
+                trigger = game.strategy_result()
+                if trigger:
+                    trigger_msgs.append(f'{game.result_msg} ({game.team1} at {game.team2})')
 
-        msg.body(FAILED_MSG.format('NFL'))
+            if len(trigger_msgs): 
+                msg.body(', '.join(trigger_msgs))
+            else:
+                msg.body(REQ_NOT_MET_MSG.format('NFL'))
+        else:
+            msg.body(NO_DATA_MSG.format('NFL'))
         searched = True
+
     if not searched:
-        msg.body(NO_DATA_MSG)
+        msg.body(FAILED_MSG)
 
     return str(resp)
 
