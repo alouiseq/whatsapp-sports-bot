@@ -34,9 +34,8 @@ class Game_NBA:
         self.team2q2 = int(game['scores']['home']['linescore'][1])
         self.quarter = game['periods']['current']
         self.halftime = game['status']['halftime']
-        self.teams_meta = f'({self.team1} at {self.team2})'
-        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
 
+        teams_meta = f'({self.team1} at {self.team2})'
         self.trigger_total_msg = f'This is a solid position, take the 2h total under! {teams_meta}'
         self.consider_total_msg = f'Not great, but this is a good position, consider the 2h total under! {teams_meta}'
         self.close_total_msg = f'It\'s 2nd Quarter, but 2h total has potential. {teams_meta}'
@@ -44,6 +43,7 @@ class Game_NBA:
 
         team1_id = game['teams']['visitors']["id"]
         team2_id = game['teams']['home']["id"]
+        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
 
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
