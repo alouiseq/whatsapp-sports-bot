@@ -27,11 +27,11 @@ NFL_HEADERS = {
 class Game_NBA:
     def __init__(self, game):
         self.team1 = game['teams']['visitors']['nickname']
-        self.team1q1 = game['scores']['visitors']['linescore'][0]
-        self.team1q2 = game['scores']['visitors']['linescore'][1]
+        self.team1q1 = int(game['scores']['visitors']['linescore'][0])
+        self.team1q2 = int(game['scores']['visitors']['linescore'][1])
         self.team2 = game['teams']['home']['nickname']
-        self.team2q1 = game['scores']['home']['linescore'][0]
-        self.team2q2 = game['scores']['home']['linescore'][1]
+        self.team2q1 = int(game['scores']['home']['linescore'][0])
+        self.team2q2 = int(game['scores']['home']['linescore'][1])
         self.quarter = game['periods']['current']
         self.halftime = game['status']['halftime']
         self.teams_meta = f'({self.team1} at {self.team2})'
@@ -61,14 +61,14 @@ class Game_NBA:
         if self.quarter > 2 or self.quarter == 1:
             return None
         if self.halftime:
-            if team1q2 >= min_score:
+            if self.team1q2 >= min_score:
                 score_count += 1
-            if team2q2 >= min_score:
+            if self.team2q2 >= min_score:
                 score_count += 1
 
-        if team1q1 >= min_score:
+        if self.team1q1 >= min_score:
             score_count += 1
-        if team2q1 >= min_score:
+        if self.team2q1 >= min_score:
             score_count += 1
 
         if score_count >= 3 and self.played_yesterday:
@@ -116,7 +116,7 @@ class Game_NFL:
                 close_to_req = True
 
         if meets_req:
-            self.result_msg = f'This is a really solid position! {self.teams_meta}'
+            self.result_msg = f'This is a really solid position, take the 2h total under! {self.teams_meta}'
             return True
         elif close_to_req:
             self.result_msg = f'It\'s 2nd Quarter, but this has potential. {self.teams_meta}'
