@@ -45,11 +45,11 @@ class Game_NBA:
         yesterday = str(datetime.utcnow().date() - timedelta(1))
         querystring1 = {"season": "2022", "team": str(team1_id), "date": yesterday}
         querystring2 = {"season": "2022", "team": str(team2_id), "date": yesterday}
-        data1 = getJsonData(NBA_URL, NBA_HEADERS, querystring1)
-        data2 = getJsonData(NBA_URL, NBA_HEADERS, querystring2)
+        data1 = get_json_data(NBA_URL, NBA_HEADERS, querystring1)
+        data2 = get_json_data(NBA_URL, NBA_HEADERS, querystring2)
 
         if data1 and data2:
-            return True if data1.results or data2.results else False
+            return True if data1['results'] or data2['results'] else False
         else:
             return False
 
