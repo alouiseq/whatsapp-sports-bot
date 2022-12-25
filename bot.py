@@ -35,11 +35,15 @@ class Game_NBA:
         self.quarter = game['periods']['current']
         self.halftime = game['status']['halftime']
         self.teams_meta = f'({self.team1} at {self.team2})'
+        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
+
+        self.trigger_total_msg = f'This is a solid position, take the 2h total under! {teams_meta}'
+        self.consider_total_msg = f'Not great, but this is a good position, consider the 2h total under! {teams_meta}'
+        self.close_total_msg = f'It\'s 2nd Quarter, but 2h total has potential. {teams_meta}'
+        self.result_msg = None
 
         team1_id = game['teams']['visitors']["id"]
         team2_id = game['teams']['home']["id"]
-        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
-        result_msg = None
 
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
@@ -72,13 +76,13 @@ class Game_NBA:
             score_count += 1
 
         if score_count >= 3 and self.played_yesterday:
-            self.result_msg = f'This is a really solid position! {self.teams_meta}'
-            return True
+            self.result_msg = trigger_total_msg
         elif score_count >= 3:
-            self.result_msg = f'Not great, but this is a good position! {self.teams_meta}'
-            return True
+            self.result_msg = consider_total_msg
         elif score_count >= 1 and self.quarter == 2 and not self.halftime:
-            self.result_msg = f'It\'s 2nd Quarter, but this has potential. {self.teams_meta}'
+            self.result_msg = close_total_msg
+
+        if self.result_msg:
             return True
 
         return False 
@@ -92,7 +96,7 @@ class Game_NFL:
         self.quarter = game['game']['status']['short']
 
         teams_meta = f'({self.team1}:{self.team1_total} at {self.team2}:{self.team2_total})'
-        self.trigger_total_msg = f'This is a really solid position, take the 2h total under! {teams_meta}'
+        self.trigger_total_msg = f'This is a solid position, take the 2h total under! {teams_meta}'
         self.trigger_team_total_msg = f'This is a solid position for the team, take the 2h TEAM total under! {teams_meta}'
         self.close_total_msg = f'It\'s 2nd Quarter, but 2h total has potential. {teams_meta}'
         self.close_team_total_msg = f'It\'s 2nd Quarter, but 2h TEAM total has potential. {teams_meta}'
