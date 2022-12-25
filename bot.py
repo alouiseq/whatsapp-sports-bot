@@ -77,7 +77,7 @@ class Game_NBA:
         elif score_count >= 3:
             self.result_msg = f'Not great, but this is a good position! {self.teams_meta}'
             return True
-        elif score_count >= 1 and self.quarter == 2:
+        elif score_count >= 1 and self.quarter == 2 and not self.halftime:
             self.result_msg = f'It\'s 2nd Quarter, but this has potential. {self.teams_meta}'
             return True
 
