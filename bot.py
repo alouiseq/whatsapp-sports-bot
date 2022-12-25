@@ -94,13 +94,18 @@ class Game_NFL:
         team1_id = game['teams']['away']["id"]
         team2_id = game['teams']['home']["id"]
 
-        result_msg = None
         teams_meta = f'({self.team1}:{self.team1_total} at {self.team2}:{self.team2_total})'
+        trigger_total_msg = f'This is a really solid position, take the 2h total under! {self.teams_meta}'
+        trigger_team_total_msg = f'This is a solid position for the team, take the 2h TEAM total under! {self.teams_meta}'
+        close_total_msg = f'It\'s 2nd Quarter, but 2h total has potential. {self.teams_meta}'
+        close_team_total_msg = f'It\'s 2nd Quarter, but 2h TEAM total has potential. {self.teams_meta}'
+        result_msg = None
 
     def strategy_result(self):
         meets_req = False 
         close_to_req = False
         no_trigger_statuses = ['Q1', 'Q3', 'Q4', 'OT', 'FT', 'AOT', 'CANC', 'PST']
+        max_score = 20
         high_score = 17
         low_score = 10
         min_score = 7
@@ -108,18 +113,24 @@ class Game_NFL:
         if self.quarter in no_trigger_statuses:
             return None
 
-        if self.quarter == 'HT':
-            if self.team1_total >= high_score and self.team2_total >= low_score:
-                meets_req = True
-        elif self.quarter == 'Q2':
-            if self.team1_total >= low_score and self.team2_total >= min_score:
-                close_to_req = True
+        def checkTotalMet(actual, expected):
+            if actual >= expected:
+                return True
+            return False
 
-        if meets_req:
-            self.result_msg = f'This is a really solid position, take the 2h total under! {self.teams_meta}'
-            return True
-        elif close_to_req:
-            self.result_msg = f'It\'s 2nd Quarter, but this has potential. {self.teams_meta}'
+
+        if self.quarter == 'HT':
+            if (checkTotalMet(self.team1_total, high_score) and checkTotalMet(self.team2_total, low_score)) or (checkTotalMet(self.team2_total, high_score) and checkTotalMet(self.team1_total, low_score)):
+               self.result_msg = trigger_total_msg
+            elif checkTotalMet(self.team1_total, max_score) or checkTotalMet(self.team2_total, max_score):
+               self.result_msg = trigger_team_total_msg
+        elif self.quarter == 'Q2':
+            if (checkTotalMet(self.team1_total, low_score) and checkTotalMet(self.team2_total, min_score)) or (checkTotalMet(self.team2_total, low_score) and checkTotalMet(self.team1_total, min_score)):
+               self.result_msg = close_total_msg 
+            elif checkTotalMet(self.team1_total, high_score) or checkTotalMet(self.team2_total, high_score):
+               self.result_msg = close_team_total_msg 
+
+        if result_msg:
             return True
 
         return False 
