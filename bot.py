@@ -24,14 +24,17 @@ NFL_HEADERS = {
     "X-RapidAPI-Host": "api-american-football.p.rapidapi.com"
 }
 
+def convertToInt(value):
+    return int(value) if value else value
+
 class Game_NBA:
     def __init__(self, game):
         self.team1 = game['teams']['visitors']['nickname']
-        self.team1q1 = int(game['scores']['visitors']['linescore'][0])
-        self.team1q2 = int(game['scores']['visitors']['linescore'][1])
+        self.team1q1 = convertToInt(game['scores']['visitors']['linescore'][0])
+        self.team1q2 = convertToInt(game['scores']['visitors']['linescore'][1])
         self.team2 = game['teams']['home']['nickname']
-        self.team2q1 = int(game['scores']['home']['linescore'][0])
-        self.team2q2 = int(game['scores']['home']['linescore'][1])
+        self.team2q1 = convertToInt(game['scores']['home']['linescore'][0])
+        self.team2q2 = convertToInt(game['scores']['home']['linescore'][1])
         self.quarter = game['periods']['current']
         self.halftime = game['status']['halftime']
 
@@ -76,11 +79,11 @@ class Game_NBA:
             score_count += 1
 
         if score_count >= 3 and self.played_yesterday:
-            self.result_msg = trigger_total_msg
+            self.result_msg = self.trigger_total_msg
         elif score_count >= 3:
-            self.result_msg = consider_total_msg
+            self.result_msg = self.consider_total_msg
         elif score_count >= 1 and self.quarter == 2 and not self.halftime:
-            self.result_msg = close_total_msg
+            self.result_msg = self.close_total_msg
 
         if self.result_msg:
             return True
