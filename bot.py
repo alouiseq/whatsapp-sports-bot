@@ -7,8 +7,8 @@ import pdb
 app = Flask(__name__)
 
 FAILED_MSG = 'I cannot find what you are searching for.'
-NO_DATA_MSG = 'Whoops, I seem to be missing that {} data!'
-REQ_NOT_MET_MSG = 'No {} games meet the requirements.'
+NO_DATA_MSG = 'Whoops, no {} games are playing right now!'
+REQ_NOT_MET_MSG = 'No {} games meet the requirements!'
 
 API_KEY = "d16b6e4142mshfff4f1f121ab449p1088cajsnfabf9adc12f5"
 
@@ -24,8 +24,49 @@ NFL_HEADERS = {
     "X-RapidAPI-Host": "api-american-football.p.rapidapi.com"
 }
 
+MIN_SCORE_NBA = 30
+THIRD_QT_TOTAL = 55
+
 def convertToInt(value):
     return int(value) if value else value
+
+class Record_NBA:
+    def __init__(self, games):
+        self.games = games
+        self.final_record = ''
+        self.winners = 0
+        self.losers = 0
+
+        for game in games:
+            self.getGameResult(game)
+
+    def getGameResult(self, game):
+        return if game['status']['long'] is not 'Finished'
+
+        team1_scores = game['scores']['visitors']['linescore']
+        team2_scores = game['scores']['home']['linescore']
+
+        qt_goals_met = 0
+        qt_needed = 3
+
+        if team1_scores[0] >= MIN_SCORE_NBA:
+            qt_goals_met += 1
+        if team1_scores[1] >= MIN_SCORE_NBA:
+            qt_goals_met += 1
+        if team2_scores[0] >= MIN_SCORE_NBA:
+           qt_goals_met += 1
+        if team2_scores[1] >= MIN_SCORE_NBA:
+           qt_goals_met += 1
+
+        if qt_goals_met < qt_needed:
+            return
+        elif int(team1_scores[2]) + int(team2_scores[2]) <= THIRD_QT_TOTAL:
+            self.winners += 1
+        else:
+            self.losers += 1
+
+            def getDayGames(self):
+
 
 class Game_NBA:
     def __init__(self, game):
@@ -152,6 +193,14 @@ def bot():
     trigger_msgs = []
 
     if 'nba' in incoming_msg:
+        imsgs = incoming_msg.split()
+        num_games = None
+
+        try:
+            num_games = next(for imsg in imsgs if type(imsg) is int)
+        except StopIteration:
+            pass
+
         today = str(datetime.utcnow().date())
         querystring = {"live": "all"}
 
@@ -198,5 +247,5 @@ def bot():
 
     return str(resp)
 
-if __name__ == '__main__':
-    app.run(port=4000)
+# if __name__ == '__main__':
+#    app.run(port=3031)
