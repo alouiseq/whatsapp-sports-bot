@@ -31,8 +31,8 @@ def convertToInt(value):
     return int(value) if value else value
 
 class Record_NBA:
-    def __init__(self, games):
-        self.games = games
+    def __init__(self, num_games):
+        self.numof_games = numof_games
         self.final_record = ''
         self.winners = 0
         self.losers = 0
@@ -40,7 +40,23 @@ class Record_NBA:
         for game in games:
             self.getGameResult(game)
 
-    def getGameResult(self, game):
+    def fetchGames(self):
+        counter = 1
+        games = []
+
+        for x in range(numof_games + 1):
+            date = str(datetime.utcnow().date() - timedelta(counter))
+            counter += 1
+            querystring = {"date": date}
+
+            data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
+
+            if data['results']:
+                games.extend(data['response'])
+
+        return games
+
+    def updateGameResult(self, game):
         return if game['status']['long'] is not 'Finished'
 
         team1_scores = game['scores']['visitors']['linescore']
@@ -59,13 +75,19 @@ class Record_NBA:
            qt_goals_met += 1
 
         if qt_goals_met < qt_needed:
-            return
+            pass
         elif int(team1_scores[2]) + int(team2_scores[2]) <= THIRD_QT_TOTAL:
             self.winners += 1
         else:
             self.losers += 1
 
-            def getDayGames(self):
+    def aggregateRecords(self):
+        games = self.fetchGames()
+
+        for game in games:
+            self.updateGameResult(game)
+
+        return f'{self.winners} - {self.losers} (wins-losses)'
 
 
 class Game_NBA:
@@ -201,28 +223,31 @@ def bot():
         except StopIteration:
             pass
 
-        today = str(datetime.utcnow().date())
-        querystring = {"live": "all"}
-
-        data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
-
-        if data['results']:
-            for game in data['response']:
-                game = Game_NBA(game)
-                trigger = game.strategy_result()
-                if trigger:
-                    trigger_msgs.append(game.result_msg)
-
-            if len(trigger_msgs):
-                msg.body(', '.join(trigger_msgs))
-            else:
-                msg.body(REQ_NOT_MET_MSG.format('NBA'))
+        if num_games:
+            record_nba = Record_NBA(num_games)
+            final_record = record_nba.aggregateRecords()
+            msg.body(final_record)
         else:
-            msg.body(NO_DATA_MSG.format('NBA'))
+            querystring = {"live": "all"}
+
+            data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
+
+            if data['results']:
+                for game in data['response']:
+                    game = Game_NBA(game)
+                    trigger = game.strategy_result()
+                    if trigger:
+                        trigger_msgs.append(game.result_msg)
+
+                if len(trigger_msgs):
+                    msg.body(', '.join(trigger_msgs))
+                else:
+                    msg.body(REQ_NOT_MET_MSG.format('NBA'))
+            else:
+                msg.body(NO_DATA_MSG.format('NBA'))
         searched = True
 
     if 'nfl' in incoming_msg:
-        today = str(datetime.utcnow().date())
         querystring = {"live": "all", "league": "1", "season": "2022"}
 
         data = get_json_data(NFL_URL, NFL_HEADERS, querystring)
