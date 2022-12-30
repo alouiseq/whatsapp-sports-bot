@@ -31,34 +31,30 @@ def convertToInt(value):
     return int(value) if value else value
 
 class Record_NBA:
-    def __init__(self, num_games):
-        self.numof_games = numof_games
+    def __init__(self, last_num_games):
+        self.last_num_games = last_num_games
         self.final_record = ''
         self.winners = 0
         self.losers = 0
 
-        for game in games:
-            self.getGameResult(game)
-
     def fetchGames(self):
-        counter = 1
+        game_counter = 0
+        day_delta = 0
         games = []
 
-        for x in range(numof_games + 1):
-            date = str(datetime.utcnow().date() - timedelta(counter))
-            counter += 1
+        while game_counter < self.last_num_games:
+            date = str(datetime.utcnow().date() - timedelta(day_delta))
+            day_delta += 1
             querystring = {"date": date}
-
             data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
 
             if data['results']:
+                game_counter += data['results']
                 games.extend(data['response'])
 
-        return games
+        return games[0:self.last_num_games]
 
-    def updateGameResult(self, game):
-        return if game['status']['long'] is not 'Finished'
-
+    def game_engine(self, game):
         team1_scores = game['scores']['visitors']['linescore']
         team2_scores = game['scores']['home']['linescore']
 
@@ -74,18 +70,23 @@ class Record_NBA:
         if team2_scores[1] >= MIN_SCORE_NBA:
            qt_goals_met += 1
 
-        if qt_goals_met < qt_needed:
+        pdb.set_trace()
+
+        try:
+            if qt_goals_met < qt_needed:
+                pass
+            elif int(team1_scores[2]) + int(team2_scores[2]) <= THIRD_QT_TOTAL:
+                self.winners += 1
+            else:
+                self.losers += 1
+        except ValueError:
             pass
-        elif int(team1_scores[2]) + int(team2_scores[2]) <= THIRD_QT_TOTAL:
-            self.winners += 1
-        else:
-            self.losers += 1
 
     def aggregateRecords(self):
         games = self.fetchGames()
 
         for game in games:
-            self.updateGameResult(game)
+            self.game_engine(game)
 
         return f'{self.winners} - {self.losers} (wins-losses)'
 
@@ -216,15 +217,18 @@ def bot():
 
     if 'nba' in incoming_msg:
         imsgs = incoming_msg.split()
-        num_games = None
+        numof_games = None
 
-        try:
-            num_games = next(for imsg in imsgs if type(imsg) is int)
-        except StopIteration:
-            pass
+        for imsg in imsgs:
+            try:
+                if int(imsg):
+                    numof_games = int(imsg)
+                    break
+            except ValueError:
+                pass
 
-        if num_games:
-            record_nba = Record_NBA(num_games)
+        if numof_games:
+            record_nba = Record_NBA(numof_games)
             final_record = record_nba.aggregateRecords()
             msg.body(final_record)
         else:
@@ -272,5 +276,5 @@ def bot():
 
     return str(resp)
 
-# if __name__ == '__main__':
-#    app.run(port=3031)
+if __name__ == '__main__':
+    app.run(port=4000)
