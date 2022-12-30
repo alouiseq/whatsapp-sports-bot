@@ -48,7 +48,7 @@ class Record_NBA:
             querystring = {"date": date}
             data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
 
-            if data['results']:
+            if data and data['results']:
                 game_counter += data['results']
                 games.extend(data['response'])
 
@@ -61,18 +61,16 @@ class Record_NBA:
         qt_goals_met = 0
         qt_needed = 3
 
-        if team1_scores[0] >= MIN_SCORE_NBA:
-            qt_goals_met += 1
-        if team1_scores[1] >= MIN_SCORE_NBA:
-            qt_goals_met += 1
-        if team2_scores[0] >= MIN_SCORE_NBA:
-           qt_goals_met += 1
-        if team2_scores[1] >= MIN_SCORE_NBA:
-           qt_goals_met += 1
-
-        pdb.set_trace()
-
         try:
+            if int(team1_scores[0]) >= MIN_SCORE_NBA:
+                qt_goals_met += 1
+            if int(team1_scores[1]) >= MIN_SCORE_NBA:
+                qt_goals_met += 1
+            if int(team2_scores[0]) >= MIN_SCORE_NBA:
+               qt_goals_met += 1
+            if int(team2_scores[1]) >= MIN_SCORE_NBA:
+               qt_goals_met += 1
+
             if qt_goals_met < qt_needed:
                 pass
             elif int(team1_scores[2]) + int(team2_scores[2]) <= THIRD_QT_TOTAL:
