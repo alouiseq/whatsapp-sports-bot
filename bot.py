@@ -36,46 +36,18 @@ def bot():
 
         if numof_games:
             record_nba = Record_NBA(numof_games)
-            final_record = record_nba.aggregateRecords()
-            msg.body(final_record)
+            final_record_msg = record_nba.aggregateRecords()
+            msg.body(final_record_msg)
         else:
-            querystring = {"live": "all"}
+            nba_games = Game_NBA()
+            returned_msg = nba_games.start()
+            msg.body(returned_msg)
 
-            data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
-
-            if data['results']:
-                for game in data['response']:
-                    game = Game_NBA(game)
-                    trigger = game.strategy_result()
-                    if trigger:
-                        trigger_msgs.append(game.result_msg)
-
-                if len(trigger_msgs):
-                    msg.body(', '.join(trigger_msgs))
-                else:
-                    msg.body(REQ_NOT_MET_MSG.format('NBA'))
-            else:
-                msg.body(NO_DATA_MSG.format('NBA'))
         searched = True
 
     if 'nfl' in incoming_msg:
-        querystring = {"live": "all", "league": "1", "season": "2022"}
-
-        data = get_json_data(NFL_URL, NFL_HEADERS, querystring)
-
-        if data['results']:
-            for game in data['response']:
-                game = Game_NFL(game)
-                trigger = game.strategy_result()
-                if trigger:
-                    trigger_msgs.append(game.result_msg)
-
-            if len(trigger_msgs):
-                msg.body(', '.join(trigger_msgs))
-            else:
-                msg.body(REQ_NOT_MET_MSG.format('NFL'))
-        else:
-            msg.body(NO_DATA_MSG.format('NFL'))
+        nfl_games = Game_NFL()
+        returned_msg = nfl_games.start()
         searched = True
 
     if not searched:

@@ -79,6 +79,28 @@ class Game_NFL:
         self.close_team_total_msg = f'It\'s 2nd Quarter, but 2h TEAM total has potential. {teams_meta}'
         self.result_msg = None
 
+    def start:
+        return self.fetchGames()
+
+    def fetchGames:
+        querystring = {"live": "all", "league": "1", "season": "2022"}
+
+        data = get_json_data(NFL_URL, NFL_HEADERS, querystring)
+
+        if data['results']:
+            for game in data['response']:
+                game = Game_NFL(game)
+                trigger = game.game_engine()
+                if trigger:
+                    trigger_msgs.append(game.result_msg)
+
+            if len(trigger_msgs):
+                return ', '.join(trigger_msgs)
+            else:
+                return REQ_NOT_MET_MSG.format('NFL')
+        else:
+            return NO_DATA_MSG.format('NFL')
+
     def checkTotalMet(self, actual, expected):
         if actual >= expected:
             return True

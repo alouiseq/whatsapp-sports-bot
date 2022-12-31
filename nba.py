@@ -89,6 +89,9 @@ class Game_NBA:
         team2_id = game['teams']['home']["id"]
         self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
 
+    def start:
+        return self.fetchGames()
+
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
         querystring1 = {"season": "2022", "team": str(team1_id), "date": yesterday}
@@ -101,8 +104,26 @@ class Game_NBA:
         else:
             return False
 
+    def fetchGames(self):
+        querystring = {"live": "all"}
 
-    def strategy_result(self):
+        data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
+
+        if data['results']:
+            for game in data['response']:
+                game = Game_NBA(game)
+                trigger = game.game_engine()
+                if trigger:
+                    trigger_msgs.append(game.result_msg)
+
+            if len(trigger_msgs):
+                return ', '.join(trigger_msgs)
+            else:
+                return REQ_NOT_MET_MSG.format('NBA')
+        else:
+            return NO_DATA_MSG.format('NBA')
+
+    def game_engine(self):
         score_count = 0
         min_score = 30
 
