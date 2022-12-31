@@ -14,20 +14,6 @@ FAILED_MSG = 'I cannot find what you are searching for.'
 NO_DATA_MSG = 'Whoops, no {} games are playing right now!'
 REQ_NOT_MET_MSG = 'No {} games meet the requirements!'
 
-API_KEY = "d16b6e4142mshfff4f1f121ab449p1088cajsnfabf9adc12f5"
-
-NBA_URL = "https://api-nba-v1.p.rapidapi.com/games"
-NBA_HEADERS = {
-    "X-RapidAPI-Key": API_KEY,
-    "X-RapidAPI-Host": "api-nba-v1.p.rapidapi.com"
-}
-
-NFL_URL = "https://api-american-football.p.rapidapi.com/games"
-NFL_HEADERS = {
-    "X-RapidAPI-Key": API_KEY,
-    "X-RapidAPI-Host": "api-american-football.p.rapidapi.com"
-}
-
 @app.route('/bot', methods=['POST'])
 def bot():
     incoming_msg = request.values.get('Body' '').lower()

@@ -1,3 +1,7 @@
+import requests
+
+API_KEY = "d16b6e4142mshfff4f1f121ab449p1088cajsnfabf9adc12f5"
+
 def convert_to_int(value):
     return int(value) if value else value
 

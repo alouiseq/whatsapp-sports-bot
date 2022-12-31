@@ -1,7 +1,13 @@
-from helpers import convert_to_int, get_json_data
+from datetime import datetime, timedelta
+from helpers import convert_to_int, get_json_data, API_KEY
 
 MIN_SCORE_NBA = 30
 THIRD_QT_TOTAL = 55
+NBA_URL = "https://api-nba-v1.p.rapidapi.com/games"
+NBA_HEADERS = {
+    "X-RapidAPI-Key": API_KEY,
+    "X-RapidAPI-Host": "api-nba-v1.p.rapidapi.com"
+}
 
 class Record_NBA:
     def __init__(self, last_num_games):
