@@ -40,14 +40,15 @@ def bot():
             msg.body(final_record_msg)
         else:
             nba_games = Game_NBA()
-            returned_msg = nba_games.start()
+            returned_msg = nba_games.run()
             msg.body(returned_msg)
 
         searched = True
 
     if 'nfl' in incoming_msg:
         nfl_games = Game_NFL()
-        returned_msg = nfl_games.start()
+        returned_msg = nfl_games.run()
+        msg.body(returned_msg)
         searched = True
 
     if not searched:
