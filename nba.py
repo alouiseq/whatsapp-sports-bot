@@ -8,6 +8,7 @@ NBA_HEADERS = {
     "X-RapidAPI-Key": API_KEY,
     "X-RapidAPI-Host": "api-nba-v1.p.rapidapi.com"
 }
+REQ_NOT_MET_MSG = 'No {} games meet the requirements!'
 
 
 class Record_NBA:
@@ -101,9 +102,10 @@ class Game_NBA:
 
         team1_id = game['teams']['visitors']["id"]
         team2_id = game['teams']['home']["id"]
-        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
 
     def run:
+        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
+        return return self.getTriggerMessages()
 
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
@@ -117,26 +119,19 @@ class Game_NBA:
         else:
             return False
 
-    def fetchGames(self):
-        querystring = {"live": "all"}
+    def getTriggerMessages(self):
+        trigger_msgs = []
 
-        data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
+        trigger = self.game.run_game_engine()
+        if trigger:
+            trigger_msgs.append(self.game.result_msg)
 
-        if data['results']:
-            for game in data['response']:
-                game = Game_NBA(game)
-                trigger = game.game_engine()
-                if trigger:
-                    trigger_msgs.append(game.result_msg)
-
-            if len(trigger_msgs):
-                return ', '.join(trigger_msgs)
-            else:
-                return REQ_NOT_MET_MSG.format('NBA')
+        if len(trigger_msgs):
+            return ', '.join(trigger_msgs)
         else:
-            return NO_DATA_MSG.format('NBA')
+            return REQ_NOT_MET_MSG.format('NBA')
 
-    def game_engine(self):
+    def run_game_engine(self):
         score_count = 0
         min_score = 30
 

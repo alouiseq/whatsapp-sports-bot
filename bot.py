@@ -12,7 +12,6 @@ app = Flask(__name__)
 
 FAILED_MSG = 'I cannot find what you are searching for.'
 NO_DATA_MSG = 'Whoops, no {} games are playing right now!'
-REQ_NOT_MET_MSG = 'No {} games meet the requirements!'
 
 @app.route('/bot', methods=['POST'])
 def bot():
@@ -39,9 +38,14 @@ def bot():
             final_record_msg = record_nba.aggregateRecords()
             msg.body(final_record_msg)
         else:
-            game_nba = Game_NBA()
-            returned_msg = game_nba.run()
-            msg.body(returned_msg)
+            games = Games_NBA({"live": "all"})
+            if len(games):
+                for game in games:
+                    game_nba = Game_NBA(game)
+                    returned_msg = game_nba.run()
+                    msg.body(returned_msg)
+            else:
+                msg.body(NO_DATA_MSG.format('NBA'))
 
         searched = True
 
