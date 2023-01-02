@@ -39,8 +39,8 @@ def bot():
             final_record_msg = record_nba.aggregateRecords()
             msg.body(final_record_msg)
         else:
-            nba_games = Game_NBA()
-            returned_msg = nba_games.run()
+            game_nba = Game_NBA()
+            returned_msg = game_nba.run()
             msg.body(returned_msg)
 
         searched = True

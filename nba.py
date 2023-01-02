@@ -9,6 +9,7 @@ NBA_HEADERS = {
     "X-RapidAPI-Host": "api-nba-v1.p.rapidapi.com"
 }
 
+
 class Record_NBA:
     def __init__(self, last_num_games):
         self.last_num_games = last_num_games
@@ -68,6 +69,19 @@ class Record_NBA:
         return f'{self.winners} - {self.losers} (wins-losses)'
 
 
+class Games_NBA:
+    def __init__(self, query):
+        self.games = []
+        self.query = query
+
+    def fetchGames(self):
+        data = get_json_data(NBA_URL, NBA_HEADERS, self.query)
+
+        if data and data['results']:
+            self.games.extend(data['response'])
+        return self.games
+
+
 class Game_NBA:
     def __init__(self, game):
         self.team1 = game['teams']['visitors']['nickname']
@@ -89,8 +103,7 @@ class Game_NBA:
         team2_id = game['teams']['home']["id"]
         self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
 
-    def start:
-        return self.fetchGames()
+    def run:
 
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
