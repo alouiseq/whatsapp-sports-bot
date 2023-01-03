@@ -13,7 +13,7 @@ class Record_NFL:
         self.winners = 0
         self.losers = 0
 
-    def fetchGames(self):
+    def fetch_games(self):
         game_counter = 0
         day_delta = 0
         games = []
@@ -30,7 +30,7 @@ class Record_NFL:
 
         return games[0:self.last_num_games]
 
-    def game_engine(self, game):
+    def run_game_engine(self, game):
         team1_scores = game['scores']['visitors']['linescore']
         team2_scores = game['scores']['home']['linescore']
 
@@ -56,8 +56,8 @@ class Record_NFL:
         except ValueError:
             pass
 
-    def aggregateRecords(self):
-        games = self.fetchGames()
+    def aggregate_records(self):
+        games = self.fetch_games()
 
         for game in games:
             self.game_engine(game)
@@ -70,7 +70,7 @@ class Games_NFL:
         self.games = []
         self.query = query
 
-    def fetchGames(self):
+    def fetch_games(self):
         data = get_json_data(NFL_URL, NFL_HEADERS, self.query)
 
         if data['results']:
@@ -94,9 +94,9 @@ class Game_NFL:
         self.result_msg = None
 
     def run(self):
-        return self.getTriggerMessages()
+        return self.get_trigger_messages()
 
-    def getTriggerMessages(self):
+    def get_trigger_messages(self):
         trigger_msgs = []
 
         trigger = self.run_game_engine()
@@ -108,7 +108,7 @@ class Game_NFL:
         else:
             return REQ_NOT_MET_MSG.format('NFL')
 
-    def checkTotalMet(self, actual, expected):
+    def check_total_met(self, actual, expected):
         if actual >= expected:
             return True
         return False
@@ -126,14 +126,14 @@ class Game_NFL:
             return None
 
         if self.quarter == 'HT':
-            if (self.checkTotalMet(self.team1_total, high_score) and self.checkTotalMet(self.team2_total, low_score)) or (self.checkTotalMet(self.team2_total, high_score) and self.checkTotalMet(self.team1_total, low_score)):
+            if (self.check_total_met(self.team1_total, high_score) and self.check_total_met(self.team2_total, low_score)) or (self.check_total_met(self.team2_total, high_score) and self.check_total_met(self.team1_total, low_score)):
                self.result_msg = self.trigger_total_msg
-            elif self.checkTotalMet(self.team1_total, max_score) or self.checkTotalMet(self.team2_total, max_score):
+            elif self.check_total_met(self.team1_total, max_score) or self.check_total_met(self.team2_total, max_score):
                self.result_msg = self.trigger_team_total_msg
         elif self.quarter == 'Q2':
-            if (self.checkTotalMet(self.team1_total, low_score) and self.checkTotalMet(self.team2_total, min_score)) or (self.checkTotalMet(self.team2_total, low_score) and self.checkTotalMet(self.team1_total, min_score)):
+            if (self.check_total_met(self.team1_total, low_score) and self.check_total_met(self.team2_total, min_score)) or (self.check_total_met(self.team2_total, low_score) and self.check_total_met(self.team1_total, min_score)):
                self.result_msg = self.close_total_msg 
-            elif self.checkTotalMet(self.team1_total, high_score) or self.checkTotalMet(self.team2_total, high_score):
+            elif self.check_total_met(self.team1_total, high_score) or self.check_total_met(self.team2_total, high_score):
                self.result_msg = self.close_team_total_msg 
 
         if self.result_msg:

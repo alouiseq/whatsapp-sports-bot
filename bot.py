@@ -41,12 +41,13 @@ def bot():
 
         if numof_games:
             record_nba = Record_NBA(numof_games)
-            final_record_msg = record_nba.aggregateRecords()
+            final_record_msg = record_nba.aggregate_records()
             msg.body(final_record_msg)
         else:
-            nba_games = Games_NBA({"live": LIVE_GAMES})
-            if len(nba_games):
-                for game in nba_games:
+            games_nba = Games_NBA({"live": LIVE_GAMES})
+            games = games_nba.fetch_games()
+            if len(games):
+                for game in games:
                     game_nba = Game_NBA(game)
                     returned_msg = game_nba.run()
                     msg.body(returned_msg)
@@ -60,14 +61,15 @@ def bot():
 
         if numof_games:
             record_nba = Record_NBA(numof_games)
-            final_record_msg = record_nba.aggregateRecords()
+            final_record_msg = record_nba.aggregate_records()
             msg.body(final_record_msg)
         else:
-            nfl_games = Games_NFL({"live": LIVE_GAMES, "season": SEASON})
-            if len(nfl_games):
-                for game in nfl_games:
+            games_nfl = Games_NFL({"live": LIVE_GAMES, "season": SEASON})
+            games = games_nfl.fetch_games()
+            if len(games):
+                for game in games:
                     game_nfl = Game_NFL(game)
-                    returned_msg = nfl_games.run()
+                    returned_msg = game_nfl.run()
                     msg.body(returned_msg)
             else:
                 msg.body(NO_DATA_MSG.format('NFL'))

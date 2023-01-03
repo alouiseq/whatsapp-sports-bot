@@ -18,7 +18,7 @@ class Record_NBA:
         self.winners = 0
         self.losers = 0
 
-    def fetchGames(self):
+    def fetch_games(self):
         game_counter = 0
         day_delta = 0
         games = []
@@ -35,7 +35,7 @@ class Record_NBA:
 
         return games[0:self.last_num_games]
 
-    def game_engine(self, game):
+    def run_game_engine(self, game):
         team1_scores = game['scores']['visitors']['linescore']
         team2_scores = game['scores']['home']['linescore']
 
@@ -61,11 +61,11 @@ class Record_NBA:
         except ValueError:
             pass
 
-    def aggregateRecords(self):
-        games = self.fetchGames()
+    def aggregate_records(self):
+        games = self.fetch_games()
 
         for game in games:
-            self.game_engine(game)
+            self.run_game_engine(game)
 
         return f'{self.winners} - {self.losers} (wins-losses)'
 
@@ -105,7 +105,7 @@ class Game_NBA:
 
     def run(self):
         self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
-        return self.getTriggerMessages()
+        return self.get_trigger_messages()
 
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
@@ -119,7 +119,7 @@ class Game_NBA:
         else:
             return False
 
-    def getTriggerMessages(self):
+    def get_trigger_messages(self):
         trigger_msgs = []
 
         trigger = self.run_game_engine()
