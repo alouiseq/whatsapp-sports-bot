@@ -64,6 +64,20 @@ class Record_NFL:
 
         return f'{self.winners} - {self.losers} (wins-losses)'
 
+
+class Games_NFL:
+    def __init__(self, query):
+        self.games = []
+        self.query = query
+
+    def fetchGames(self):
+        data = get_json_data(NFL_URL, NFL_HEADERS, self.query)
+
+        if data['results']:
+            self.games.extend(data['response'])
+        return self.games
+
+
 class Game_NFL:
     def __init__(self, game):
         self.team1 = game['teams']['away']['name']
@@ -79,34 +93,27 @@ class Game_NFL:
         self.close_team_total_msg = f'It\'s 2nd Quarter, but 2h TEAM total has potential. {teams_meta}'
         self.result_msg = None
 
-    def start:
-        return self.fetchGames()
+    def run(self):
+        return self.getTriggerMessages()
 
-    def fetchGames:
-        querystring = {"live": "all", "league": "1", "season": "2022"}
+    def getTriggerMessages(self):
+        trigger_msgs = []
 
-        data = get_json_data(NFL_URL, NFL_HEADERS, querystring)
+        trigger = self.run_game_engine()
+        if trigger:
+            trigger_msgs.append(game.result_msg)
 
-        if data['results']:
-            for game in data['response']:
-                game = Game_NFL(game)
-                trigger = game.game_engine()
-                if trigger:
-                    trigger_msgs.append(game.result_msg)
-
-            if len(trigger_msgs):
-                return ', '.join(trigger_msgs)
-            else:
-                return REQ_NOT_MET_MSG.format('NFL')
+        if len(trigger_msgs):
+            return ', '.join(trigger_msgs)
         else:
-            return NO_DATA_MSG.format('NFL')
+            return REQ_NOT_MET_MSG.format('NFL')
 
     def checkTotalMet(self, actual, expected):
         if actual >= expected:
             return True
         return False
 
-    def strategy_result(self):
+    def run_game_engine(self):
         meets_req = False 
         close_to_req = False
         no_trigger_statuses = ['Q1', 'Q3', 'Q4', 'OT', 'FT', 'AOT', 'CANC', 'PST']

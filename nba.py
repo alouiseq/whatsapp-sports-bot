@@ -103,9 +103,9 @@ class Game_NBA:
         team1_id = game['teams']['visitors']["id"]
         team2_id = game['teams']['home']["id"]
 
-    def run:
+    def run(self):
         self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
-        return return self.getTriggerMessages()
+        return self.getTriggerMessages()
 
     def check_game_yesterday(self, team1_id, team2_id):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
@@ -122,7 +122,7 @@ class Game_NBA:
     def getTriggerMessages(self):
         trigger_msgs = []
 
-        trigger = self.game.run_game_engine()
+        trigger = self.run_game_engine()
         if trigger:
             trigger_msgs.append(self.game.result_msg)
 
