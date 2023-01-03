@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from helpers import convert_to_int, get_json_data, API_KEY
 
-MIN_SCORE_NBA = 30
-THIRD_QT_TOTAL = 55
+MIN_SCORE = 30
+SECOND_QT_TOTAL = 58
+THIRD_QT_TOTAL = 58
+QUARTER_GOAL = 2
 NBA_URL = "https://api-nba-v1.p.rapidapi.com/games"
 NBA_HEADERS = {
     "X-RapidAPI-Key": API_KEY,
@@ -43,18 +45,18 @@ class Record_NBA:
         qt_needed = 3
 
         try:
-            if int(team1_scores[0]) >= MIN_SCORE_NBA:
+            if int(team1_scores[0]) >= MIN_SCORE:
                 qt_goals_met += 1
-            if int(team1_scores[1]) >= MIN_SCORE_NBA:
+            if int(team1_scores[1]) >= MIN_SCORE:
                 qt_goals_met += 1
-            if int(team2_scores[0]) >= MIN_SCORE_NBA:
+            if int(team2_scores[0]) >= MIN_SCORE:
                qt_goals_met += 1
-            if int(team2_scores[1]) >= MIN_SCORE_NBA:
+            if int(team2_scores[1]) >= MIN_SCORE:
                qt_goals_met += 1
 
             if qt_goals_met < qt_needed:
                 pass
-            elif int(team1_scores[2]) + int(team2_scores[2]) <= THIRD_QT_TOTAL:
+            elif int(team1_scores[2]) + int(team2_scores[2]) >= THIRD_QT_TOTAL:
                 self.winners += 1
             else:
                 self.losers += 1
@@ -126,27 +128,29 @@ class Game_NBA:
         return None
 
     def run_game_engine(self):
-        score_count = 0
-        min_score = 30
+        qt_goals_met = 0
 
         if self.quarter > 2 or self.quarter == 1:
             return None
         if self.halftime:
-            if self.team1q2 >= min_score:
-                score_count += 1
-            if self.team2q2 >= min_score:
-                score_count += 1
+            if self.team1q2 >= MIN_SCORE:
+                qt_goals_met += 1
+            if self.team2q2 >= MIN_SCORE:
+                qt_goals_met += 1
 
-        if self.team1q1 >= min_score:
-            score_count += 1
-        if self.team2q1 >= min_score:
-            score_count += 1
+        if self.team1q1 >= MIN_SCORE:
+            qt_goals_met += 1
+        if self.team2q1 >= MIN_SCORE:
+            qt_goals_met += 1
 
-        if score_count >= 3 and self.played_yesterday:
+        if self.played_yesterday:
+            return False
+
+        if qt_goals_met >= QUARTER_GOAL:
             self.result_msg = self.trigger_total_msg
-        elif score_count >= 3:
+        elif self.team1q2 + team2q2 < SECOND_QT_TOTAL:
             self.result_msg = self.consider_total_msg
-        elif score_count >= 1 and self.quarter == 2 and not self.halftime:
+        elif qt_goals_met >= 1 and self.quarter == 2 and not self.halftime:
             self.result_msg = self.close_total_msg
 
         if self.result_msg:
