@@ -22,7 +22,7 @@ class Record_NFL:
             date = str(datetime.utcnow().date() - timedelta(day_delta))
             day_delta += 1
             querystring = {"date": date}
-            data = get_json_data(NBA_URL, NBA_HEADERS, querystring)
+            data = get_json_data(NBA_URL, NFL_HEADERS, querystring)
 
             if data and data['results']:
                 game_counter += data['results']
@@ -31,6 +31,7 @@ class Record_NFL:
         return games[0:self.last_num_games]
 
     def run_game_engine(self, game):
+        # TODO: refactor this copied code to be NFL specific
         team1_scores = game['scores']['visitors']['linescore']
         team2_scores = game['scores']['home']['linescore']
 
@@ -60,7 +61,7 @@ class Record_NFL:
         games = self.fetch_games()
 
         for game in games:
-            self.game_engine(game)
+            self.run_game_engine(game)
 
         return f'{self.winners} - {self.losers} (wins-losses)'
 
