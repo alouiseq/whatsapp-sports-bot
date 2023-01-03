@@ -75,7 +75,7 @@ class Games_NBA:
         self.games = []
         self.query = query
 
-    def fetchGames(self):
+    def fetch_games(self):
         data = get_json_data(NBA_URL, NBA_HEADERS, self.query)
 
         if data and data['results']:
@@ -100,17 +100,17 @@ class Game_NBA:
         self.close_total_msg = f'It\'s 2nd Quarter, but 2h total has potential. {teams_meta}'
         self.result_msg = None
 
-        team1_id = game['teams']['visitors']["id"]
-        team2_id = game['teams']['home']["id"]
+        self.team1_id = game['teams']['visitors']["id"]
+        self.team2_id = game['teams']['home']["id"]
 
     def run(self):
-        self.played_yesterday = self.check_game_yesterday(team1_id, team2_id)
-        return self.get_trigger_messages()
+        self.played_yesterday = self.check_game_yesterday()
+        return self.get_trigger_message()
 
-    def check_game_yesterday(self, team1_id, team2_id):
+    def check_game_yesterday(self):
         yesterday = str(datetime.utcnow().date() - timedelta(1))
-        querystring1 = {"season": "2022", "team": str(team1_id), "date": yesterday}
-        querystring2 = {"season": "2022", "team": str(team2_id), "date": yesterday}
+        querystring1 = {"season": "2022", "team": str(self.team1_id), "date": yesterday}
+        querystring2 = {"season": "2022", "team": str(self.team2_id), "date": yesterday}
         data1 = get_json_data(NBA_URL, NBA_HEADERS, querystring1)
         data2 = get_json_data(NBA_URL, NBA_HEADERS, querystring2)
 
@@ -119,17 +119,11 @@ class Game_NBA:
         else:
             return False
 
-    def get_trigger_messages(self):
-        trigger_msgs = []
-
+    def get_trigger_message(self):
         trigger = self.run_game_engine()
         if trigger:
-            trigger_msgs.append(self.game.result_msg)
-
-        if len(trigger_msgs):
-            return ', '.join(trigger_msgs)
-        else:
-            return REQ_NOT_MET_MSG.format('NBA')
+            return self.game.result_msg
+        return None
 
     def run_game_engine(self):
         score_count = 0

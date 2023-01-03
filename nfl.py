@@ -68,7 +68,7 @@ class Record_NFL:
 class Games_NFL:
     def __init__(self, query):
         self.games = []
-        self.query = query
+        self.query = {'league': '1', **query}
 
     def fetch_games(self):
         data = get_json_data(NFL_URL, NFL_HEADERS, self.query)

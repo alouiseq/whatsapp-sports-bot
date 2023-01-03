@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 FAILED_MSG = 'I cannot find what you are searching for.'
 NO_DATA_MSG = 'Whoops, no {} games are playing right now!'
+REQ_NOT_MET_MSG = 'No {} games meet the requirements!'
 
 LIVE_GAMES = 'all'
 SEASON = 2022
@@ -50,7 +51,14 @@ def bot():
                 for game in games:
                     game_nba = Game_NBA(game)
                     returned_msg = game_nba.run()
-                    msg.body(returned_msg)
+
+                    if returned_msg:
+                        trigger_msgs.append(result_msg)
+
+                if len(trigger_msgs):
+                    msg.body(', '.join(trigger_msgs))
+                else:
+                    msg.body(REQ_NOT_MET_MSG.format('NBA'))
             else:
                 msg.body(NO_DATA_MSG.format('NBA'))
 
