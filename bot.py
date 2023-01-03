@@ -4,8 +4,8 @@ from twilio.twiml.messaging_response import MessagingResponse
 from datetime import datetime, timedelta
 import pdb
 
-from nba import Game_NBA, Record_NBA
-from nfl import Game_NFL, Record_NFL
+from nba import Games_NBA, Game_NBA, Record_NBA
+from nfl import Games_NFL, Game_NFL, Record_NFL
 from helpers import get_json_data
 
 app = Flask(__name__)
